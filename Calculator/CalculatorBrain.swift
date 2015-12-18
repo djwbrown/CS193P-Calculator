@@ -81,6 +81,18 @@ class CalculatorBrain {
         opStack = [Op]()
     }
     
+    func history() -> String {
+        // Returns a post-fix stack of operators and operands.
+        var stringArrayStack = opStack.map({$0.description})
+        for idx in stringArrayStack.indices {
+            if stringArrayStack[idx].hasPrefix("3.14159265") {
+                stringArrayStack.removeAtIndex(idx)
+                stringArrayStack.insert("π", atIndex:idx)
+            }
+        }
+        return stringArrayStack.joinWithSeparator(" ")
+    }
+    
     func pushOperand(operand: Double) -> Double?{
         opStack.append(Op.Operand(operand))
         return evaluate()

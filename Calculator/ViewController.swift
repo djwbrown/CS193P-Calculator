@@ -20,6 +20,12 @@ class ViewController: UIViewController {
     @IBAction func appendDigit(sender: UIButton) {
         var digit = sender.currentTitle!
         
+        // Prevent leading zeros.
+        if !userIsInTheMiddleOfTypingANumber && "0" == digit {
+            display.text = digit
+            return
+        }
+        
         // Handle entries of "." in the display.
         if "." == digit {
             if userIsInTheMiddleOfTypingANumber {
@@ -60,8 +66,10 @@ class ViewController: UIViewController {
         if let operation = sender.currentTitle {
             if let result = brain.performOperation(operation) {
                 displayValue = result
+                history.text = brain.history()
             } else {
                 displayValue = 0.0
+                history.text = "ERROR"
             }
         }
     }
@@ -70,8 +78,10 @@ class ViewController: UIViewController {
         userIsInTheMiddleOfTypingANumber = false
         if let result = brain.pushOperand(displayValue){
             displayValue = result
+            history.text = brain.history()
         } else {
             displayValue = 0.0
+            history.text = "ERROR"
         }
     }
     
@@ -79,6 +89,7 @@ class ViewController: UIViewController {
         brain.clear()
         userIsInTheMiddleOfTypingANumber = false
         displayValue = 0.0
+        history.text = ""
     }
     
     var displayValue: Double {
