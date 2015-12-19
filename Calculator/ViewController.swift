@@ -66,7 +66,7 @@ class ViewController: UIViewController {
         if let operation = sender.currentTitle {
             if let result = brain.performOperation(operation) {
                 displayValue = result
-                history.text = brain.history()
+                setHistoryDisplay()
             } else {
                 displayValue = 0.0
                 history.text = "ERROR"
@@ -78,7 +78,7 @@ class ViewController: UIViewController {
         userIsInTheMiddleOfTypingANumber = false
         if let result = brain.pushOperand(displayValue){
             displayValue = result
-            history.text = brain.history()
+            setHistoryDisplay()
         } else {
             displayValue = 0.0
             history.text = "ERROR"
@@ -92,10 +92,21 @@ class ViewController: UIViewController {
         history.text = ""
     }
     
+    func setHistoryDisplay() {
+        var newText = brain.program as! Array<String>
+        for index in newText.indices {
+            if newText[index].hasPrefix("3.14159265") {
+                newText.removeAtIndex(index)
+                newText.insert("π", atIndex:index)
+            }
+        }
+        history.text = newText.joinWithSeparator(" ")
+    }
+    
     var displayValue: Double {
         get {
             if "π" == display.text {
-                return acos(-1.0)
+                return M_PI
             } else {
                 return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
             }
