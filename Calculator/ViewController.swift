@@ -68,19 +68,21 @@ class ViewController: UIViewController {
                 displayValue = result
                 setHistoryDisplay()
             } else {
-                displayValue = 0.0
+                displayValue = nil
                 history.text = "ERROR"
             }
         }
     }
     
     @IBAction func enter() {
+        if nil == displayValue { return }
+        
         userIsInTheMiddleOfTypingANumber = false
-        if let result = brain.pushOperand(displayValue){
+        if let result = brain.pushOperand(displayValue!){
             displayValue = result
             setHistoryDisplay()
         } else {
-            displayValue = 0.0
+            displayValue = nil
             history.text = "ERROR"
         }
     }
@@ -88,8 +90,8 @@ class ViewController: UIViewController {
     @IBAction func clear(sender: UIButton) {
         brain.clear()
         userIsInTheMiddleOfTypingANumber = false
-        displayValue = 0.0
-        history.text = ""
+        displayValue = nil
+        history.text = " "
     }
     
     func setHistoryDisplay() {
@@ -103,16 +105,24 @@ class ViewController: UIViewController {
         history.text = newText.joinWithSeparator(" ")
     }
     
-    var displayValue: Double {
+    var displayValue: Double? {
         get {
+            // Do this condition in the brain?
             if "π" == display.text {
                 return M_PI
-            } else {
-                return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
             }
+            
+            if let interpretedNumber = NSNumberFormatter().numberFromString(display.text!) {
+                return interpretedNumber.doubleValue
+            }
+            return nil
         }
         set {
-            display.text = "\(newValue)"
+            if (nil != newValue) {
+                display.text = "\(newValue!)"
+            } else {
+                display.text = " "
+            }
             userIsInTheMiddleOfTypingANumber = false
         }
     }
