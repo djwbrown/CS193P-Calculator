@@ -93,15 +93,15 @@ class ViewController: UIViewController {
     }
     
     @IBAction func clear(sender: UIButton) {
-        brain.clear()
+        brain.clearStack()
+        brain.clearVariables()
         userIsInTheMiddleOfTypingANumber = false
         displayValue = nil
         history.text = " "
     }
     
     func setHistoryDisplay() {
-        let newText = brain.program as! Array<String>
-        history.text = newText.joinWithSeparator(" ")
+        history.text = brain.description
     }
     
     var displayValue: Double? {

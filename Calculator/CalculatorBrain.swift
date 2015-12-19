@@ -81,15 +81,66 @@ class CalculatorBrain {
         }
     }
     
+    private func description(ops: [Op]) -> (result: String?, remainingOps: [Op]) {
+        if !ops.isEmpty {
+            var remainingOps = ops
+            let op = remainingOps.removeLast()
+            
+            switch op {
+            case .Operand(let operand):
+                let doubleFixedPoint = operand.description
+                let decimalRange = doubleFixedPoint.rangeOfString(".")!
+                let endIndex = decimalRange.endIndex.advancedBy(1)
+                return (doubleFixedPoint.substringToIndex(endIndex), remainingOps)
+            case .Constant(let symbol):
+                return (symbol, remainingOps)
+            case .Variable(let symbol):
+                return (symbol, remainingOps)
+            case .UnaryOperation(let symbol, _):
+                let operandEvaluation = description(remainingOps)
+                if let opString = operandEvaluation.result {
+                    let groupedString = "(\(opString))"
+                    return (symbol.stringByAppendingString(groupedString), operandEvaluation.remainingOps)
+                }
+            case .BinaryOperation(let symbol, _):
+                let rightHandSide = description(remainingOps)
+                if let rightHandString = rightHandSide.result {
+                    let leftHandSide = description(rightHandSide.remainingOps)
+                    if let leftHandString = leftHandSide.result {
+                        var returnString = leftHandString + " \(symbol) " + rightHandString
+                        if ["×", "÷"].contains(symbol) {
+                            if leftHandSide.remainingOps.count > 0 {
+                                returnString = "(\(leftHandString))" + " \(symbol) " + rightHandString
+                            } else if rightHandSide.remainingOps.count > 0 {
+                                returnString = leftHandString + " \(symbol) " + "(\(rightHandString))"
+                            }
+                        }
+                        return (returnString, leftHandSide.remainingOps)
+                    }
+                }
+            }
+        }
+        return (nil, ops)
+    }
+    
     var description: String {
         // Display the contents of the stack with human-readable infix notation.
-        return ""
+        get {
+            let (descriptionString, _) = description(opStack)
+            print(descriptionString)
+            if (descriptionString != nil) {
+                return descriptionString!
+            } else {
+                return " "
+            }
+        }
     }
     
     private func evaluate(ops: [Op]) -> (result: Double?, remainingOps: [Op]) {
         if !ops.isEmpty {
             var remainingOps = ops
             let op = remainingOps.removeLast()
+            
             switch op {
             case .Operand(let operand):
                 return (operand, remainingOps)
@@ -121,8 +172,11 @@ class CalculatorBrain {
         return result
     }
     
-    func clear() {
+    func clearStack() {
         opStack = [Op]()
+    }
+
+    func clearVariables() {
         variableValues = [String:Double]()
     }
     
