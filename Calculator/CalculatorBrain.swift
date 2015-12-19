@@ -11,6 +11,8 @@ import Foundation
 class CalculatorBrain {
     private enum Op: CustomStringConvertible {
         case Operand(Double)
+        case Constant(String)
+        case Variable(String)
         case UnaryOperation(String, Double -> Double)
         case BinaryOperation(String, (Double, Double) -> Double)
 
@@ -19,6 +21,10 @@ class CalculatorBrain {
                 switch self {
                 case .Operand(let operand):
                     return "\(operand)"
+                case .Constant(let symbol):
+                    return symbol
+                case .Variable(let symbol):
+                    return symbol
                 case .UnaryOperation(let symbol, _):
                     return symbol
                 case .BinaryOperation(let symbol, _):
@@ -29,13 +35,19 @@ class CalculatorBrain {
     }
     
     private var opStack = [Op]()
-    
     private var knownOps = [String:Op]()
+    private var constantValues = [String:Double]()
+    var variableValues = [String:Double]()
     
     init() {
         func learnOp(op: Op) {
             knownOps[op.description] = op
         }
+        func learnConstant(constant: String, withValue cValue: Double) {
+            constantValues[constant] = cValue
+        }
+        
+        learnConstant("π", withValue: M_PI)
         
         learnOp(Op.BinaryOperation("×", *))
         learnOp(Op.BinaryOperation("÷") { $1 / $0 })
@@ -69,6 +81,11 @@ class CalculatorBrain {
         }
     }
     
+    var description: String {
+        // Display the contents of the stack with human-readable infix notation.
+        return ""
+    }
+    
     private func evaluate(ops: [Op]) -> (result: Double?, remainingOps: [Op]) {
         if !ops.isEmpty {
             var remainingOps = ops
@@ -76,6 +93,10 @@ class CalculatorBrain {
             switch op {
             case .Operand(let operand):
                 return (operand, remainingOps)
+            case .Constant(let symbol):
+                return (constantValues[symbol], remainingOps)
+            case .Variable(let symbol):
+                return (variableValues[symbol], remainingOps)
             case .UnaryOperation(_, let operation):
                 let operandEvaluation = evaluate(remainingOps)
                 if let operand = operandEvaluation.result {
@@ -102,13 +123,30 @@ class CalculatorBrain {
     
     func clear() {
         opStack = [Op]()
+        variableValues = [String:Double]()
     }
     
-    func pushOperand(operand: Double) -> Double?{
+    func pushOperand(operand: Double) -> Double? {
         opStack.append(Op.Operand(operand))
         return evaluate()
     }
     
+    func pushOperand(symbol: String) -> Double? {
+        let isConstant = constantValues.keys.contains(symbol)
+        if isConstant {
+            opStack.append(Op.Constant(symbol))
+        } else {
+            opStack.append(Op.Variable(symbol))
+        }
+        
+        let result = evaluate()
+        
+        if !isConstant {
+            variableValues[symbol] = result
+        }
+        return result
+    }
+        
     func performOperation(symbol: String) -> Double? {
         if let operation = knownOps[symbol] {
             opStack.append(operation)

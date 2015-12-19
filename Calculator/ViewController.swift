@@ -75,11 +75,16 @@ class ViewController: UIViewController {
     }
     
     @IBAction func enter() {
-        if nil == displayValue { return }
-        
         userIsInTheMiddleOfTypingANumber = false
-        if let result = brain.pushOperand(displayValue!){
-            displayValue = result
+        
+        var result: Double? = nil
+        if (displayValue != nil) {
+            result = brain.pushOperand(displayValue!)
+        } else {
+            result = brain.pushOperand(display.text!)
+        }
+        
+        if nil != result {
             setHistoryDisplay()
         } else {
             displayValue = nil
@@ -95,28 +100,19 @@ class ViewController: UIViewController {
     }
     
     func setHistoryDisplay() {
-        var newText = brain.program as! Array<String>
-        for index in newText.indices {
-            if newText[index].hasPrefix("3.14159265") {
-                newText.removeAtIndex(index)
-                newText.insert("π", atIndex:index)
-            }
-        }
+        let newText = brain.program as! Array<String>
         history.text = newText.joinWithSeparator(" ")
     }
     
     var displayValue: Double? {
+        
         get {
-            // Do this condition in the brain?
-            if "π" == display.text {
-                return M_PI
-            }
-            
             if let interpretedNumber = NSNumberFormatter().numberFromString(display.text!) {
                 return interpretedNumber.doubleValue
             }
             return nil
         }
+        
         set {
             if (nil != newValue) {
                 display.text = "\(newValue!)"
